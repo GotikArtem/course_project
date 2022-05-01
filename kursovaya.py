@@ -100,5 +100,5 @@ class App: # класс нашего приложения
             self.listt.insert(0, element)
         self.label3.config(text='Последний выпущенный авто: '+latest)
 
-if __name__ == '__main__':
-    app = App()
+
+app = App()

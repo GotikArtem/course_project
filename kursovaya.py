@@ -6,14 +6,22 @@
 # Россия 2000 1000000
 #Стоимость
 #виджеты: кнопка найти и выйти, поля ввода стоимости и имя файла , список доступных вариантов и надпись с именем и фамилией
+
+
+
 import tkinter as tk
+from tkinter import messagebox # импортируем виджет окна сообщения
+
+# os - модуль для работы с файлами, директориями и др. штуками операционной системы
+# path - класс для работы с путями в ос
+from os import path 
 
 class App:
     def __init__(self):
-        self.root =tk.Tk()
+        self.root = tk.Tk()
         self.root.geometry('800x600')
         self.root.resizable(False,False)
-        self.button1 = tk.Button(self.root,text='Найти',command=self.findcar)
+        self.button1 = tk.Button(self.root,text='Найти',command=self.__findcar)
         self.button2 = tk.Button(self.root,text='Выйти',command=lambda:exit())
        
         self.label1 = tk.Label(self.root, text='Введите стоимость')
@@ -40,28 +48,54 @@ class App:
 
         self.root.mainloop()
 
-    def findcar(self):
+    def __validate_data(self, data):
+        try:
+            for brand, country, year, price in [d.split() for d in data]:
+                if not(brand.isalpha() and
+                    country.isalpha() and
+                    year.isdigit() and
+                    price[:-1].isdigit()):
+                    messagebox.showerror(message='Неверный формат данных в исходном файле!')
+                    return False
+            return True
+        except ValueError:
+            messagebox.showerror(message='Неверный формат данных в исходном файле!')
+            return False
+
+    
+    def __findcar(self):
         filename = self.vvod2.get()
+        if not path.exists(filename):
+            messagebox.showerror(message='Нет такого входного файла!')
+            return
+
         filee = open(filename,'r')
         try:
             price = int(self.vvod1.get())
         except:
-            print('Хуйня а не число!')
+            messagebox.showerror(message='Неверный формат числа!')
             return
         else:
             data = filee.readlines()
+            if not self.__validate_data(data):
+                return
+            
             data2 = [] 
             for element in data:
-                price_check = int(element.split()[-1])
+                price_check = int(element.split()[-1][:-1])
                 if price_check <= price:
                     data2.append(element.replace('\n', ''))
             filee.close()
-            latest = max(data2, key=lambda x: int(x.split()[-2]))
+
+        if not data2:
+            self.listt.insert(0, 'Отсутствуют данные по текующим параметрам')
+            return
+
+        self.listt.delete(0, 'end')
+        latest = max(data2, key=lambda x: int(x.split()[-2]))
         for element in data2:
             self.listt.insert(0, element)
         self.label3.config(text='Последний выпущенный авто: '+latest)
 
-app = App()
-
-
-
+if __name__ == '__main__':
+    app = App()
